@@ -152,12 +152,11 @@ local KillTPlayer; KillTPlayer = UserInputService.InputBegan:Connect(function(In
         if Humanoid.RigType == Enum.HumanoidRigType.R6 then
             KillAnimation.AnimationId = "rbxassetid://"..AnimationIds["Kill"]["R6"]
         else
-            RootPart.Anchored = true
             KillAnimation.AnimationId = "rbxassetid://"..AnimationIds["Kill"]["R15"]
         end
         KillAnimation.Parent = Humanoid
         local Animation = Humanoid:LoadAnimation(KillAnimation)
-        Animation:Play()
+        RootPart.Anchored = true
         Animation:AdjustSpeed(1)
         task.wait(1)
         RootPart.Anchored = false
