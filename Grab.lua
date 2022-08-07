@@ -24,6 +24,7 @@ local RightArm = Character and Character:FindFirstChild("Right Arm") or Characte
 if not Humanoid or not RootPart or not RightArm then
     return
 end
+
 local AnimationIds = {
     ["Grab"] = {
         ["R6"] = 35978879,
