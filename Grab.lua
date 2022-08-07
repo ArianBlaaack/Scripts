@@ -156,6 +156,7 @@ local KillTPlayer; KillTPlayer = UserInputService.InputBegan:Connect(function(In
         end
         KillAnimation.Parent = Humanoid
         local Animation = Humanoid:LoadAnimation(KillAnimation)
+        Animation:Play()
         RootPart.Anchored = true
         Animation:AdjustSpeed(1)
         task.wait(1)
