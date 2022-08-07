@@ -2,7 +2,7 @@
     FE HACKS BY Arian#4137.
 ]]--
 
-local Target = [[  target's name here  ]]
+local Target = [[  lnter  ]]
 
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
@@ -13,11 +13,27 @@ local Lighting = game:GetService("Lighting")
 local StarterGui = game:GetService("StarterGui")
 
 local Player = Players.LocalPlayer
+local Character = Player.Character
 
 local PlayerGui = Player:WaitForChild("PlayerGui")
 local Backpack = Player:WaitForChild("Backpack")
 
-local Character = Player.Character
+local Humanoid = Character and Character:FindFirstChildWhichIsA("Humanoid") or false
+local RootPart = Character and Humanoid and Humanoid.RootPart or false
+local RightArm = Character and Character:FindFirstChild("Right Arm") or Character:FindFirstChild("RightHand")
+if not Humanoid or not RootPart or not RightArm then
+    return
+end
+local AnimationIds = {
+    ["Grab"] = {
+        ["R6"] = 35978879,
+        ["R15"] = 4210116953
+    },
+    ["Kill"] = {
+        ["R6"] = 204062532,
+        ["R15"] = 3338083565
+    }
+}
 
 local GetPlayer = function(Name)
     for x in string.gmatch(Name, "[%a%d%p]+") do
@@ -35,7 +51,6 @@ local GetPlayer = function(Name)
 end
 
 local CreateRightGrip = function(Tool)
-    local RightArm = Character and Character:FindFirstChild("Right Arm") or Character:FindFirstChild("RightHand")
     if Tool and RightArm then
         local Handle = Tool and Tool:FindFirstChild("Handle") or false
         if Handle then
@@ -43,7 +58,11 @@ local CreateRightGrip = function(Tool)
             Weld.Name = "RightGrip"
             Weld.Part0 = RightArm
             Weld.Part1 = Handle
-            Weld.C0 = CFrame.new(0, -2, 0) * CFrame.Angles(math.rad(-110), 0, math.rad(45))
+            if Humanoid.RigType == Enum.HumanoidRigType.R6 then
+                Weld.C0 = CFrame.new(0, -2, 0) * CFrame.Angles(math.rad(-110), 0, math.rad(45))
+            else
+                Weld.C0 = CFrame.new(2, -1, 1) * CFrame.Angles(math.rad(-90), math.rad(-25), math.rad(-110))--math.rad(-90)
+            end
             Weld.C1 = Tool.Grip
             Weld.Parent = RightArm
             return Weld
@@ -51,11 +70,6 @@ local CreateRightGrip = function(Tool)
     end
 end
 
-local Humanoid = Character and Character:FindFirstChildWhichIsA("Humanoid") or false
-local RootPart = Character and Humanoid and Humanoid.RootPart or false
-if not Humanoid or not RootPart then
-    return
-end
 Humanoid:UnequipTools()
 local MainTool = Backpack:FindFirstChildWhichIsA("Tool") or false
 if not MainTool or not MainTool:FindFirstChild("Handle") then
@@ -71,6 +85,12 @@ if not THumanoid or not TRootPart then
     return
 end
 
+if Character:FindFirstChild("Animate") then
+    Character:FindFirstChild("Animate").Disabled = true
+end
+for _, x in next, Humanoid:GetPlayingAnimationTracks() do
+    x:Stop()
+end
 CreateRightGrip(MainTool)
 MainTool.Parent = Character
 MainTool.Handle:BreakJoints()
@@ -81,46 +101,65 @@ if firetouchinterest then
     firetouchinterest(MainTool.Handle, TRootPart, 0)
     firetouchinterest(MainTool.Handle, TRootPart, 1)
 else
-    local OldCFrame = RootPart.CFrame
-    local OldTick = tick()
-    repeat
-        task.wait()
-        RootPart.CFrame = TRootPart.CFrame * CFrame.new(0, 2, 2)
-        if MainTool.Parent ~= Humanoid then
-            break
-        end
-    until (tick() - OldTick) > 3
-    RootPart.CFrame = OldCFrame
+    if Humanoid.RigType == Enum.HumanoidRigType.R6 then
+        local OldCFrame = RootPart.CFrame
+        local OldTick = tick()
+        repeat
+            task.wait()
+            RootPart.CFrame = TRootPart.CFrame * CFrame.new(0, 2, 2)
+            if MainTool.Parent ~= Humanoid then
+                break
+            end
+        until (tick() - OldTick) > 3
+        RootPart.CFrame = OldCFrame
+    else
+        return
+    end
 end
 local CS; CS = RunService.Heartbeat:Connect(function()
     if Humanoid then
-        if Humanoid:GetState() == Enum.HumanoidStateType.Ragdoll then
+        if Humanoid.Health > 0 then
             Humanoid:ChangeState("GettingUp")
         end
     else
         CS:Disconnect()
     end
 end)
-local MainAnimation = Instance.new("Animation")
-MainAnimation.AnimationId = "rbxassetid://35978879"
-MainAnimation.Parent = Humanoid
-local Animation = Humanoid:LoadAnimation(MainAnimation)
+THumanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, false)
+THumanoid:ChangeState(Enum.HumanoidStateType.Ragdoll)
+local MainAnimation = Instance.new("Animation", Humanoid)
+local Animation
+local WaitTime
+if Humanoid.RigType == Enum.HumanoidRigType.R6 then
+    MainAnimation.AnimationId = "rbxassetid://"..AnimationIds["Grab"]["R6"]
+    Animation = Humanoid:LoadAnimation(MainAnimation)
+    WaitTime = .1
+else
+    MainAnimation.AnimationId = "rbxassetid://"..AnimationIds["Grab"]["R15"]
+    Animation = Humanoid:LoadAnimation(MainAnimation)
+    WaitTime = Animation.Length-(Animation.Length-.25)
+end
 Animation.Looped = false
-Animation:AdjustSpeed(.5)
 Animation:Play()
-wait(.1)
+task.wait(WaitTime)
 Animation:AdjustSpeed(0)
 
 local KillTPlayer; KillTPlayer = UserInputService.InputBegan:Connect(function(Input, GameProcessed)
     if not GameProcessed and Input.KeyCode == Enum.KeyCode.K then
         KillTPlayer:Disconnect()
         local KillAnimation = Instance.new("Animation")
-        KillAnimation.AnimationId = "rbxassetid://204062532"
+        if Humanoid.RigType == Enum.HumanoidRigType.R6 then
+            KillAnimation.AnimationId = "rbxassetid://"..AnimationIds["Kill"]["R6"]
+        else
+            RootPart.Anchored = true
+            KillAnimation.AnimationId = "rbxassetid://"..AnimationIds["Kill"]["R15"]
+        end
         KillAnimation.Parent = Humanoid
         local Animation = Humanoid:LoadAnimation(KillAnimation)
         Animation:Play()
         Animation:AdjustSpeed(1)
-        Animation.Stopped:Wait()
+        task.wait(1)
+        RootPart.Anchored = false
         Player.Character = nil
         Humanoid.Health = 0
         Character:BreakJoints()
