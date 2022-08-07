@@ -138,7 +138,7 @@ if Humanoid.RigType == Enum.HumanoidRigType.R6 then
 else
     MainAnimation.AnimationId = "rbxassetid://"..AnimationIds["Grab"]["R15"]
     Animation = Humanoid:LoadAnimation(MainAnimation)
-    WaitTime = Animation.Length-(Animation.Length-.25)
+    WaitTime = .25
 end
 Animation.Looped = false
 Animation:Play()
