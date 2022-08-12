@@ -2,7 +2,7 @@
     FE HACKS BY Arian#4137.
 ]]--
 
-local Target = [[  lnter  ]]
+local Target = [[  ph  ]]
 
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
@@ -117,15 +117,7 @@ else
         return
     end
 end
-local CS; CS = RunService.Heartbeat:Connect(function()
-    if Humanoid then
-        if Humanoid.Health > 0 then
-            Humanoid:ChangeState("GettingUp")
-        end
-    else
-        CS:Disconnect()
-    end
-end)
+
 THumanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp, false)
 THumanoid:ChangeState(Enum.HumanoidStateType.Ragdoll)
 local MainAnimation = Instance.new("Animation", Humanoid)
@@ -136,6 +128,15 @@ if Humanoid.RigType == Enum.HumanoidRigType.R6 then
     Animation = Humanoid:LoadAnimation(MainAnimation)
     WaitTime = .1
 else
+    CS = RunService.Heartbeat:Connect(function()
+        if Humanoid then
+            if Humanoid.Health > 0 then
+                Humanoid:ChangeState("GettingUp")
+            end
+        else
+            CS:Disconnect()
+        end
+    end)
     MainAnimation.AnimationId = "rbxassetid://"..AnimationIds["Grab"]["R15"]
     Animation = Humanoid:LoadAnimation(MainAnimation)
     WaitTime = .25
@@ -164,5 +165,18 @@ local KillTPlayer; KillTPlayer = UserInputService.InputBegan:Connect(function(In
         Player.Character = nil
         Humanoid.Health = 0
         Character:BreakJoints()
+    elseif not GameProcessed and Input.KeyCode == Enum.KeyCode.E then
+        Animation:Stop()
+        CS:Disconnect()
+        KillTPlayer:Disconnect()
+        if Character:FindFirstChild("Animate") then
+         Character:FindFirstChild("Animate").Disabled = false
+        end
+        if Humanoid.RigType == Enum.HumanoidRigType.R6 then
+		 Character["Right Arm"].RightGrip:Destroy()
+		else
+		 Character["RightHand"].RightGripAttachment:Destroy()
+		 Character["RightHand"].RightGrip:Destroy()
+		end
     end
 end)
